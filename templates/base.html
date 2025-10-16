@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %} - Job Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* Light Theme (Default) */
+        :root {
+            --bg-color: #f8f9fa; --primary-color: #ffffff; --secondary-color: #f1f3f5; --accent-color: #0d6efd;
+            --font-color: #212529; --border-color: #dee2e6; --shadow-color: rgba(0,0,0,0.05);
+        }
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg-color: #1a1a2e; --primary-color: #242444; --secondary-color: #3f3f61; --accent-color: #e94560;
+            --font-color: #e0e0e0; --border-color: #3a3a5e; --shadow-color: rgba(0,0,0,0.3);
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); color: var(--font-color); transition: background-color 0.3s, color 0.3s; }
+        .card { background-color: var(--primary-color); border: 1px solid var(--border-color); box-shadow: 0 4px 12px var(--shadow-color); border-radius: 0.75rem; transition: background-color 0.3s, border-color 0.3s; }
+        .form-control, .form-select { background-color: var(--secondary-color); border-color: var(--border-color); color: var(--font-color); }
+        .form-control-lg { padding: 0.75rem 1.25rem; font-size: 1rem; }
+        .form-control:focus, .form-select:focus { background-color: var(--secondary-color); border-color: var(--accent-color); color: var(--font-color); box-shadow: 0 0 0 0.25rem var(--accent-color-transparent, rgba(13, 110, 253, 0.25)); }
+        .btn-primary { background-color: var(--accent-color); border-color: var(--accent-color); font-weight: 500; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-lg { padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 600; }
+
+        /* --- **FIXES FOR DARK MODE TEXT/ICON COLOR** --- */
+        [data-theme="dark"] .navbar-nav .nav-link,
+        [data-theme="dark"] .navbar-nav #theme-toggle {
+            color: var(--font-color); /* Use the main font color for dark mode */
+        }
+        [data-theme="dark"] .navbar-nav #theme-toggle:hover {
+            opacity: 0.8;
+        }
+
+        /* --- Polished Login Page Styles --- */
+        .auth-container { background-color: var(--bg-color); }
+        .auth-card { max-width: 450px; width: 100%; margin: 1rem; padding: 2.5rem; }
+        .auth-nav { gap: 1rem; }
+        .auth-nav-link { color: #6c757d; text-decoration: none; padding: 0.5rem 1rem; font-weight: 600; position: relative; border-bottom: 3px solid transparent; transition: color 0.3s; }
+        [data-theme="dark"] .auth-nav-link { color: #a0a0b0; }
+        .auth-nav-link.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }
+        .auth-pane { display: none; }
+        .auth-pane.active { display: block; }
+        .or-divider { text-align: center; color: #adb5bd; margin: 1.5rem 0; font-size: 0.9em; }
+        .btn-outline-secondary { border-color: var(--border-color); color: var(--font-color); }
+        .btn-outline-secondary:hover { background-color: var(--secondary-color); }
+
+        /* --- Other existing styles below --- */
+        .modal-content, .list-group-item { background-color: var(--primary-color); border-color: var(--border-color); color: var(--font-color); }
+        .modal-header, .modal-footer { border-bottom-color: var(--border-color); border-top-color: var(--border-color); }
+        .list-group-item.active { background-color: var(--accent-color) !important; border-color: var(--accent-color) !important; color: white !important; }
+        .text-muted { color: #6c757d !important; }
+        [data-theme="dark"] .text-muted { color: #a0a0b0 !important; }
+        #sidebar-wrapper, #page-content-wrapper .navbar { background-color: var(--primary-color) !important; border-color: var(--border-color) !important; transition: background-color 0.3s; }
+        #sidebar-wrapper .list-group-item { color: var(--font-color); }
+        #wrapper { display: flex; } #sidebar-wrapper { min-height: 100vh; margin-left: -15rem; transition: margin .25s ease-out; width: 15rem; } #sidebar-wrapper .sidebar-heading { padding: 0.875rem 1.25rem; font-size: 1.2rem; font-weight: 700; } #sidebar-wrapper .list-group { width: 15rem; } #sidebar-wrapper .list-group-item i { margin-right: 10px; font-size: 1.2em; } #page-content-wrapper { min-width: 100vw; } #wrapper.toggled #sidebar-wrapper { margin-left: 0; }
+        @media (min-width: 768px) { #sidebar-wrapper { margin-left: 0; } #page-content-wrapper { min-width: 0; width: 100%; } #wrapper.toggled #sidebar-wrapper { margin-left: -15rem; } }
+        .kanban-column { background-color: var(--secondary-color); border-radius: 8px; padding: 15px; height: 100%; }
+        .kanban-title { font-weight: 600; margin-bottom: 20px; color: var(--accent-color); text-align: center; }
+        .kanban-cards { min-height: 200px; }
+        .job-card { background-color: var(--primary-color); border-color: var(--border-color); box-shadow: 0 2px 4px var(--shadow-color); border-radius: 6px; padding: 15px; margin-bottom: 15px; transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: grab; }
+        .job-card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px var(--shadow-color); }
+        .job-card-header { display: flex; justify-content: space-between; align-items: center; }
+        .job-card-title { font-weight: 600; color: var(--font-color); margin: 0; }
+        .job-card-actions { display: flex; align-items: center; gap: 5px; }
+        .btn-action { background: none; border: none; color: #6c757d; font-size: 1.1em; cursor: pointer; padding: 0 5px; }
+        [data-theme="dark"] .btn-action { color: #888; }
+        .btn-action:hover { color: var(--accent-color); }
+    </style>
+  </head>
+  <body>
+    {% block body_content %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // --- THEME TOGGLE LOGIC ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const applyTheme = (theme) => {
+            document.documentElement.setAttribute('data-theme', theme);
+            if(themeToggle) {
+                themeToggle.innerHTML = theme === 'dark' ? '<i class="bi bi-sun-fill"></i>' : '<i class="bi bi-moon-fill"></i>';
+            }
+        };
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                let newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+                document.cookie = `theme=${newTheme};path=/;max-age=31536000`;
+                if (window.location.pathname.includes('/dashboard')) {
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

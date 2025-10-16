@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Application Board{% endblock %}
+{% block body_content %}
+<div class="d-flex" id="wrapper">
+    <div id="sidebar-wrapper">
+        <div class="sidebar-heading">Job Tracker</div>
+        <div class="list-group list-group-flush">
+            <a href="{{ url_for('dashboard') }}" class="list-group-item list-group-item-action"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+            <a href="{{ url_for('applications') }}" class="list-group-item list-group-item-action active"><i class="bi bi-kanban-fill"></i> Application Board</a>
+        </div>
+    </div>
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-expand-lg border-bottom">
+            <button class="btn btn-sm" id="menu-toggle"><i class="bi bi-list"></i></button>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                    <li class="nav-item"><button class="btn btn-sm" id="theme-toggle"></button></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown">{{ current_user.username }}</a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div class="container-fluid p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Application Board</h1>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addJobModal"><i class="bi bi-plus-lg"></i> Add Application</button>
+            </div>
+            <div class="row g-3" id="kanban-board">
+                {% for status, jobs in jobs_by_status.items() %}
+                <div class="col"><div class="kanban-column"><h5 class="kanban-title">{{ status }} ({{ jobs|length }})</h5><div class="kanban-cards" data-status="{{ status }}">{% for job in jobs %}<div class="job-card" data-id="{{ job.id }}"><div class="job-card-header"><h6 class="job-card-title">{{ job.company_name }}</h6><div class="job-card-actions"><button class="btn-action" data-bs-toggle="modal" data-bs-target="#editJobModal-{{ job.id }}" title="Edit"><i class="bi bi-pencil-square"></i></button><form action="{{ url_for('delete_job', job_id=job.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this application?');"><button type="submit" class="btn-action" title="Delete"><i class="bi bi-trash"></i></button></form></div></div><p class="job-card-subtitle mb-2">{{ job.job_title }}</p>{% if job.date_applied %}<p class="card-text text-muted small">Applied: {{ job.date_applied }}</p>{% endif %}</div>{% endfor %}</div></div></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="addJobModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Add New Application</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form action="{{ url_for('add_job') }}" method="post"><div class="mb-3"><label class="form-label">Company</label><input type="text" class="form-control" name="company_name" required></div><div class="mb-3"><label class="form-label">Job Title</label><input type="text" class="form-control" name="job_title" required></div><div class="mb-3"><label class="form-label">Date Applied</label><input type="date" class="form-control" name="date_applied" required></div><div class="mb-3"><label class="form-label">Status</label><select class="form-select" name="status"><option>Wishlist</option><option selected>Applied</option><option>Interviewing</option><option>Offer</option><option>Rejected</option></select></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="submit" class="btn btn-primary">Save</button></div></form></div></div></div></div>
+{% for status, jobs in jobs_by_status.items() %}{% for job in jobs %}<div class="modal fade" id="editJobModal-{{ job.id }}" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit Application</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form action="{{ url_for('edit_job', job_id=job.id) }}" method="post"><div class="mb-3"><label class="form-label">Company</label><input type="text" class="form-control" name="company_name" value="{{ job.company_name }}" required></div><div class="mb-3"><label class="form-label">Job Title</label><input type="text" class="form-control" name="job_title" value="{{ job.job_title }}" required></div><div class="mb-3"><label class="form-label">Date Applied</label><input type="date" class="form-control" name="date_applied" value="{{ job.date_applied }}" required></div><div class="mb-3"><label class="form-label">Status</label><select class="form-select" name="status"><option {% if job.status=='Wishlist' %}selected{% endif %}>Wishlist</option><option {% if job.status=='Applied' %}selected{% endif %}>Applied</option><option {% if job.status=='Interviewing' %}selected{% endif %}>Interviewing</option><option {% if job.status=='Offer' %}selected{% endif %}>Offer</option><option {% if job.status=='Rejected' %}selected{% endif %}>Rejected</option></select></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="submit" class="btn btn-primary">Save Changes</button></div></form></div></div></div></div>{% endfor %}{% endfor %}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+    document.getElementById("menu-toggle").addEventListener("click", e => { e.preventDefault(); document.getElementById("wrapper").classList.toggle("toggled"); });
+    document.querySelectorAll('.kanban-cards').forEach(col => { new Sortable(col, { group: 'kanban', animation: 150, onEnd: evt => { fetch(`/update_status/${evt.item.dataset.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: evt.to.dataset.status }) }) } }); });
+</script>
+{% endblock %}
